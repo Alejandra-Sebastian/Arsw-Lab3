@@ -19,6 +19,7 @@ package edu.eci.arsw.myrestaurant.restcontrollers;
 import edu.eci.arsw.myrestaurant.model.Order;
 import edu.eci.arsw.myrestaurant.model.ProductType;
 import edu.eci.arsw.myrestaurant.model.RestaurantProduct;
+import edu.eci.arsw.myrestaurant.services.OrderServicesException;
 import edu.eci.arsw.myrestaurant.services.RestaurantOrderServices;
 import edu.eci.arsw.myrestaurant.services.RestaurantOrderServicesStub;
 import java.util.Hashtable;
@@ -42,35 +43,63 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author hcadavid
  */
-
 @RestController
 @RequestMapping(value = "/orders")
 public class OrdersAPIController {
-	
-	@Autowired
-	private RestaurantOrderServices ros;
-	
-	@RequestMapping(method = RequestMethod.GET)
-	public ResponseEntity<?> manejadorGetRecursoOrdersAPI() {
-		try {
- 			//obtener datos que se enviarán a través del API
- 			return new ResponseEntity<>(ros.getTablesWithOrders(),HttpStatus.ACCEPTED);
- 		} catch (Exception ex) {
- 			Logger.getLogger(OrdersAPIController.class.getName()).log(Level.SEVERE, null, ex);
- 			return new ResponseEntity<>("Error, no se encontraron mesas", HttpStatus.NOT_FOUND);
- 		}
-	}
-	
-	@RequestMapping(path = "/{idmesa}", method = RequestMethod.GET)
-	public ResponseEntity<?> manejadorGetIdMesaOrdersAPI(@PathVariable int idmesa) {
-		try {
- 			//obtener datos que se enviarán a través del API
- 			return new ResponseEntity<>(ros.getTableOrder(idmesa),HttpStatus.ACCEPTED);
- 		} catch (Exception ex) {
- 			Logger.getLogger(OrdersAPIController.class.getName()).log(Level.SEVERE, null, ex);
- 			return new ResponseEntity<>("Error, no se encontro la mesa",HttpStatus.NOT_FOUND);
- 		}
-	}
 
+    @Autowired
+    private RestaurantOrderServices ros;
+
+    @RequestMapping(method = RequestMethod.GET)
+    public ResponseEntity<?> manejadorGetRecursoOrdersAPI() {
+        try {
+            //obtener datos que se enviarán a través del API
+            return new ResponseEntity<>(ros.getTablesWithOrders(), HttpStatus.ACCEPTED);
+        } catch (Exception ex) {
+            Logger.getLogger(OrdersAPIController.class.getName()).log(Level.SEVERE, null, ex);
+            return new ResponseEntity<>("Error, no se encontraron mesas", HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @RequestMapping(path = "/{idmesa}", method = RequestMethod.GET)
+    public ResponseEntity<?> manejadorGetIdMesaOrdersAPI(@PathVariable int idmesa) {
+        try {
+            //obtener datos que se enviarán a través del API
+            return new ResponseEntity<>(ros.getTableOrder(idmesa), HttpStatus.ACCEPTED);
+        } catch (Exception ex) {
+            Logger.getLogger(OrdersAPIController.class.getName()).log(Level.SEVERE, null, ex);
+            return new ResponseEntity<>("Error, no se encontro la mesa", HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @RequestMapping(method = RequestMethod.POST)
+    public ResponseEntity<?> manejadorPostRecursoOrdenes(@RequestBody Order o) throws OrderServicesException {
+        ros.addNewOrderToTable(o);
+        return new ResponseEntity<>(HttpStatus.CREATED);
+
+    }
+    
+    @RequestMapping(path = "/{idmesa}/total", method = RequestMethod.GET)
+    public ResponseEntity<?> manejadorGetBillByTable(@PathVariable int idmesa) {
+        try {
+            //obtener datos que se enviarán a través del API
+            System.out.println(idmesa+" manejador");
+            return new ResponseEntity<>(ros.calculateTableBill(idmesa), HttpStatus.ACCEPTED);
+        } catch (Exception ex) {
+            Logger.getLogger(OrdersAPIController.class.getName()).log(Level.SEVERE, null, ex);
+            return new ResponseEntity<>("Error, no se encontro la mesa", HttpStatus.NOT_FOUND);
+        }
+    }
+    
+    @RequestMapping(path = "/{idmesa}", method = RequestMethod.PUT)
+    public ResponseEntity<?> actualizarOrden(@PathVariable int idmesa, @RequestBody Order o) {
+        try{
+            ros.updateOrder(idmesa, o);
+            return new ResponseEntity<>(HttpStatus.OK);
+        }catch(Exception e){
+            return new ResponseEntity<>(e.getMessage(),HttpStatus.FORBIDDEN);
+        }
+       
+    }
     
 }
